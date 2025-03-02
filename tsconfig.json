@@ -6,6 +6,6 @@
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
-    "types": ["node"]
+    "types": ["node"]  // ✅ Ensure this is present
   }
 }
