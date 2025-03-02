@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -12,8 +12,8 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.get('/', (req, res) => {
-  res.send('Hello from Node.js + TypeScript!');
+app.get('/', (req: Request, res: Response) => {
+  res.send(`Running in ${process.env.NODE_ENV} mode`);
 });
 
 // Start Server
