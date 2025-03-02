@@ -1,24 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const paymentRoutes = require('./routes/payment');
 
-// Load environment variables based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: envFile });
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
+// ✅ Allow CORS from frontend (React)
+app.use(cors({
+  origin: ['http://localhost:3001'],  // ✅ Allow localhost:3001
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+}));
+
 app.use(express.json());
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
 
-// Routes
+// ✅ Register API Routes
+app.use('/api/payment', paymentRoutes);
+
 app.get('/', (req, res) => {
-  res.send(`Server running in ${process.env.NODE_ENV} mode`);
+    res.send(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 
-// Start Server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running on http://localhost:${PORT}`);
 });
