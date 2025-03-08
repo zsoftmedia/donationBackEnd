@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 // ✅ Allow CORS from frontend (React)
 app.use(cors({
-  origin: ['http://localhost:3001','https://lovely-caramel-2e7792.netlify.app'],  // ✅ Allow localhost:3001
+  origin: ['http://localhost:3001','https://jazakallahu.netlify.app/'],  // ✅ Allow localhost:3001
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
 }));
