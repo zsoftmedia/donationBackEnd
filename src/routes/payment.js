@@ -57,6 +57,135 @@ router.post("/intent", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/dR6fZya4I8Or9S8cMM"; // 🔹 Replace with your Stripe link
+
+// ✅ Generate Stripe Payment Link
+router.post("/create-payment-link", async (req, res) => {
+  try {
+    const { name, email, amount } = req.body;
+
+    // ✅ Create a Product (if needed)
+    const product = await stripe.products.create({
+      name: "Donation Payment",
+      description: `Donation from ${name}`,
+    });
+
+    // ✅ Create a Price for the Product
+    const price = await stripe.prices.create({
+      product: product.id,
+      unit_amount: amount * 100, // Convert to cents
+      currency: "eur",
+    });
+
+    // ✅ Create a Payment Link with Email Pre-filled
+    const paymentLink = await stripe.paymentLinks.create({
+      line_items: [{ price: price.id, quantity: 1 }],
+      metadata: { name, email },
+      collect_email: "always", // ✅ Pre-fill email field in checkout
+      allow_promotion_codes: true, // Optional discount codes
+    });
+
+    console.log(`🔗 Generated Payment Link for ${email}:`, paymentLink.url);
+    return res.json({ url: paymentLink.url });
+  } catch (error) {
+    console.error("❌ Stripe Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get("/transactions", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query; // Optional date filters
+
+    const payments = await stripe.paymentIntents.list({
+      created: {
+        gte: startDate ? Math.floor(new Date(startDate).getTime() / 1000) : undefined,
+        lte: endDate ? Math.floor(new Date(endDate).getTime() / 1000) : undefined,
+      },
+      limit: 100, // ✅ Get last 100 transactions
+    });
+
+    let totalAmount = 0;
+    let customers = [];
+
+    // ✅ Loop through each successful payment
+    for (const payment of payments.data) {
+      if (payment.status === "succeeded") {
+        totalAmount += payment.amount;
+
+        // ✅ Fetch customer details from metadata (if stored)
+        const charge = await stripe.charges.retrieve(payment.latest_charge);
+        const billingDetails = charge.billing_details;
+
+        customers.push({
+          id: payment.id,
+          amountPaid: payment.amount / 100, // Convert cents to EUR
+          currency: payment.currency.toUpperCase(),
+          name: billingDetails.name || "N/A",
+          email: billingDetails.email || "N/A",
+          phone: billingDetails.phone || "N/A",
+          address: billingDetails.address || "N/A",
+          status: payment.status,
+        });
+      }
+    }
+
+    res.json({
+      totalTransactions: customers.length,
+      totalAmount: totalAmount / 100, // Convert cents to EUR
+      currency: customers.length > 0 ? customers[0].currency : "EUR",
+      customers: customers, // ✅ Customer details list
+    });
+  } catch (error) {
+    console.error("❌ Error fetching transactions:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// ✅ Create Stripe Checkout Session
+router.post("/create-checkout-session", async (req, res) => {
+  try {
+    const { name, email, phone, address, amount } = req.body;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      customer_email: email, // ✅ Pre-fill email in checkout
+      phone_number_collection: phone, // ✅ Collect phone number
+      billing_address_collection: "required", // ✅ Collect address
+      locale: "hr",
+      submit_type: "donate",
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: { name: "Donation" },
+            unit_amount: amount * 100, // Convert EUR to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+
+      metadata: { // ✅ Store full user details
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+      },
+
+      success_url: `http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}`, // ✅ Redirect after success
+      cancel_url: `http://localhost:3001/cancel`, // ✅ Redirect if canceled
+    });
+
+    console.log(`🔗 Checkout Session Created:`, session.url);
+    return res.json({ url: session.url });
+  } catch (error) {
+    console.error("❌ Stripe Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 // ✅ Retrieve Payment Details After Success
 router.get("/success", async (req, res) => {

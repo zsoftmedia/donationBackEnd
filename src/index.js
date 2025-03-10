@@ -10,13 +10,14 @@ const PORT = process.env.PORT || 3000;
 
 // ✅ Allow CORS from frontend (React)
 const allowedOrigins = [
-  "https://jazakallahu.netlify.app", // Your frontend URL
+  "https://ghb-clanstvo.netlify.app", // Your frontend URL
   "http://localhost:3001" // For local testing
 ];
+
 app.use(cors({
   origin: allowedOrigins,
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true, // Allows sending cookies/authentication headers
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Allows sending cookies/authentication headers
 }));
 
 app.use(express.json());
