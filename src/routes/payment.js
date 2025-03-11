@@ -57,7 +57,7 @@ router.post("/intent", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
-const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/dR6fZya4I8Or9S8cMM"; // 🔹 Replace with your Stripe link
+
 
 // ✅ Generate Stripe Payment Link
 router.post("/create-payment-link", async (req, res) => {
@@ -175,8 +175,8 @@ router.post("/create-checkout-session", async (req, res) => {
         address: address,
       },
 
-      success_url: `http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}`, // ✅ Redirect after success
-      cancel_url: `http://localhost:3001/cancel`, // ✅ Redirect if canceled
+      success_url: `https://ghb-clanstvo.netlify.app/success?session_id={CHECKOUT_SESSION_ID}`, // ✅ Redirect after success
+      cancel_url: `https://ghb-clanstvo.netlify.app/`, // ✅ Redirect if canceled
     });
 
     console.log(`🔗 Checkout Session Created:`, session.url);
