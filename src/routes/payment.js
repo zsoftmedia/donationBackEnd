@@ -10,7 +10,6 @@ router.post("/pay", async (req, res) => {
     console.log("🔍 FRONTEND_URL:", FRONTEND_URL); 
 
     const { amount = 15000 } = req.body; 
-console.log(req.body)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card","klarna"], // Add all needed payment methods
       payment_method_options: {
