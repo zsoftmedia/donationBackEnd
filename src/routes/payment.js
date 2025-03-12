@@ -65,41 +65,9 @@ console.log(req.body)
   }
 });
 
-router.post("/create-payment-link", async (req, res) => {
-  try {
-    const { name, email, amount } = req.body;
-
-
-    const product = await stripe.products.create({
-      name: "Donation Payment",
-      description: `Donation from ${name}`,
-    });
-    const price = await stripe.prices.create({
-      product: product.id,
-      unit_amount: amount * 100, // Convert to cents
-      currency: "eur",
-    });
-
-    const paymentLink = await stripe.paymentLinks.create({
-      line_items: [{ price: price.id, quantity: 1 }],
-      metadata: { name, email },
-      collect_email: "always", // 
-      allow_promotion_codes: true, 
-    });
-
-    console.log(`🔗 Generated Payment Link for ${email}:`, paymentLink.url);
-    return res.json({ url: paymentLink.url });
-  } catch (error) {
-    console.error("❌ Stripe Error:", error);
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-
 router.get("/transactions", async (req, res) => {
   try {
     const { startDate, endDate } = req.query; 
-
     const payments = await stripe.paymentIntents.list({
       created: {
         gte: startDate ? Math.floor(new Date(startDate).getTime() / 1000) : undefined,
@@ -145,12 +113,11 @@ router.get("/transactions", async (req, res) => {
 router.post("/create-checkout-session", async (req, res) => {
   try {
     const { name, email, phone, address, amount } = req.body;
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      customer_email: email, // ✅ Pre-fill email in checkout
-      phone_number_collection: phone, // ✅ Collect phone number
-      billing_address_collection: "required", // ✅ Collect address
+      customer_email: email,
+      phone_number_collection: phone, 
+      billing_address_collection: "required",
       locale: "hr",
       submit_type: "donate",
       line_items: [
@@ -158,30 +125,24 @@ router.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "eur",
             product_data: { name: "Donation" },
-            unit_amount: amount * 100, // Convert EUR to cents
+            unit_amount: amount * 100,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-
-      metadata: { // ✅ Store full user details
+      metadata: { 
         name: name,
         email: email,
         phone: phone,
         address: address,
       },
-
-      success_url: `https://ghb-clanstvo.netlify.app/success?session_id={CHECKOUT_SESSION_ID}`, // ✅ Redirect after success
-      cancel_url: `https://ghb-clanstvo.netlify.app/`, // ✅ Redirect if canceled
+      success_url: `https://ghb-clanstvo.netlify.app/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://ghb-clanstvo.netlify.app/`, 
     });
-
-    console.log(`🔗 Checkout Session Created:`, session.url);
     return res.json({ url: session.url });
   } catch (error) {
-    console.error("❌ Stripe Error:", error);
     return res.status(500).json({ error: error.message });
   }
 });
-
 module.exports = router;
