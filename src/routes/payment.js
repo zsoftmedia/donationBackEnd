@@ -48,21 +48,13 @@ router.get("/transactions", async (req, res) => {
 
 
 router.post("/create-checkout-session", async (req, res) => {
-  try {
-    console.log("✅ Request received at /api/payment/create-checkout-session");
-    console.log("📩 Received Data:", req.body); // ✅ Log the received data
-  
+  try {  
     // Extract request body
     const { name, email, address, amount, phone } = req.body;
-  
-    // ✅ Validate required fields before making Stripe API call
     if (!name || !email || !amount || !phone) {
-      console.error("❌ Missing required fields:", req.body);
+      console.error("Missing required fields:", req.body);
       return res.status(400).json({ error: "Missing required fields" });
     }
-  
-    console.log("🛒 Creating Stripe checkout session for:", name, email, amount);
-  
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card", "klarna", "eps"], // ✅ Supports Apple Pay via "card"
       customer_email: email,
@@ -80,8 +72,10 @@ router.post("/create-checkout-session", async (req, res) => {
         },
       ],
       metadata: { name, email, phone, address },
-      success_url: `https://ghb-clanstvo.netlify.app/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://ghb-clanstvo.netlify.app/`, 
+      success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+      
+
     });
   
     console.log("✅ Stripe session created:", session.url);
@@ -89,6 +83,33 @@ router.post("/create-checkout-session", async (req, res) => {
   } catch (error) {
     console.error("❌ Stripe Error:", error); // ✅ Log the full Stripe error
     return res.status(500).json({ error: error.message || "Payment session could not be created." });
+  }
+});
+
+router.get('/success', async (req, res) => {
+  try {
+      const sessionId = req.query.session_id;
+      if (!sessionId) {
+          return res.status(400).json({ error: 'Session ID is required' });
+      }
+
+      // Fetch payment details from Stripe
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      return res.json({
+          success: true,
+          message: 'Payment successful!',
+          paymentDetails: {
+              id: session.id,
+              amount_total: session.amount_total / 100, // Convert cents to EUR
+              currency: session.currency.toUpperCase(),
+              payment_status: session.payment_status,
+              customer_email: session.customer_details?.email || 'Not Provided',
+          },
+      });
+  } catch (error) {
+      console.error('❌ Error retrieving payment details:', error);
+      return res.status(500).json({ error: 'Failed to retrieve payment details' });
   }
 });
 module.exports = router;
