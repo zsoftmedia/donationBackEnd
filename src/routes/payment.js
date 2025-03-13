@@ -2,68 +2,6 @@ const express = require("express");
 const stripe = require("../config/stripe");
 
 const router = express.Router();
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3001";
-
-
-router.post("/pay", async (req, res) => {
-  try {
-    console.log("🔍 FRONTEND_URL:", FRONTEND_URL); 
-
-    const { amount = 15000 } = req.body; 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card","klarna"], // Add all needed payment methods
-      payment_method_options: {
-        paypal: { preferred: true }, // ✅ Prioritize PayPal
-        ideal: { preferred: true },  // ✅ Prioritize iDEAL
-        klarna: { preferred: true }, // ✅ Prioritize Klarna
-      },
-      automatic_payment_methods: { enabled: true }, // ✅ Enable Google Pay & other auto-detected methods
-    
-      // ✅ Auto-fill customer details
-      customer_email: email,
-      phone_number_collection: { enabled: true }, // ✅ Request and auto-fill phone number
-      billing_address_collection: "required", // ✅ Force user to enter an address
-    
-      // ✅ Pre-fill shipping address
-      shipping_address_collection: {
-        allowed_countries: ["US", "CA", "GB", "DE", "FR", "NL", "SE", "DK", "NO", "FI", "HR"], // Add more if needed
-      },
-    
-      // ✅ Pre-fill customer data if they have a Stripe account
-      customer_creation: "always", // Creates a customer if one doesn’t exist
-      mode: "payment",
-      submit_type: "donate",
-      locale: "hr",
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: { name: "Donation" },
-            unit_amount: amount * 100, // Convert amount to cents
-          },
-          quantity: 1,
-        },
-      ],
-    
-      // ✅ Store user details to pass to Stripe
-      metadata: { name, email, phone, address },
-    
-      success_url: `https://ghb-clanstvo.netlify.app/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://ghb-clanstvo.netlify.app/`,
-    });
-    
-    
-    
-    
-
-    console.log("✅ Stripe session created:", session);
-    return res.json({ id: session.id, url: session.url });
-  } catch (error) {
-    console.error("❌ Stripe Error:", error);
-    return res.status(500).json({ error: error.message }); // Return the actual Stripe error message
-  }
-});
-
 router.get("/transactions", async (req, res) => {
   try {
     const { startDate, endDate } = req.query; 
