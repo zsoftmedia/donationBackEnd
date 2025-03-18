@@ -56,7 +56,7 @@ router.post("/create-checkout-session", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card", "klarna", "eps"], // ✅ Supports Apple Pay via "card"
+      payment_method_types: ["card", "klarna", "eps"], 
       customer_email: email,
       phone_number_collection: { enabled: true },
       billing_address_collection: "required",
@@ -66,7 +66,7 @@ router.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "eur",
             product_data: { name: "Donation" },
-            unit_amount: parseInt(amount) * 100, // ✅ Convert to cents
+            unit_amount: parseInt(amount) * 100, 
           },
           quantity: 1,
         },
@@ -79,9 +79,9 @@ router.post("/create-checkout-session", async (req, res) => {
     });
   
     console.log("✅ Stripe session created:", session.url);
-    return res.json({ url: session.url });
+    return res.json({ url: session.url,success:true });
   } catch (error) {
-    console.error("❌ Stripe Error:", error); // ✅ Log the full Stripe error
+    console.error("Stripe Error:", error);
     return res.status(500).json({ error: error.message || "Payment session could not be created." });
   }
 });
