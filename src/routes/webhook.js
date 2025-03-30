@@ -32,8 +32,7 @@ router.post("/", express.raw({ type: "application/json" }), async (req, res) => 
         to: "cyberkhan7@gmail.com",
         bcc: "mekhan1900@gmail.com",
         subject: "Neue Spende eingegangen",
-        html: createEmailTemplate(session.metadata.name,session.customer_email,(session.amount_total / 100).toFixed(2),session.metadata.phone, charge.balance_transaction.net / 100)`
-        `,
+        html: createEmailTemplate(session.metadata.name,session.customer_email,(session.amount_total / 100).toFixed(2),session.metadata.phone, (charge.balance_transaction.net / 100).toFixed(2)),
       };
 
       try {
