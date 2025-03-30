@@ -1,11 +1,11 @@
-function createEmailTemplate(name, email, amount,phone) {
+function createEmailTemplate(name, email, amount,phone,netAmout) {
     return `
       <div style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
             <td style="background: #007BFF; color: #ffffff; text-align: center; padding: 20px;">
-              <h2 style="margin: 0;">📬 ${amount}</h2>
+              <h2 style="margin: 0;"> € ${amount} Nettobetrag wird ausgezahlt: € ${netAmout} “</h2>
             </td>
           </tr>
   

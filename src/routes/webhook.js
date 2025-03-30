@@ -1,8 +1,8 @@
-// routes/webhook.js
 const express = require("express");
 const router = express.Router();
 const stripe = require("../config/stripe");
 const nodemailer = require("nodemailer");
+const createEmailTemplate = require("../config/template/reciveAmountDonation");
 
 router.post("/", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
@@ -19,7 +19,6 @@ router.post("/", express.raw({ type: "application/json" }), async (req, res) => 
     const session = event.data.object;
 
     if (session.payment_status === "paid") {
-      // 💌 Send email after successful payment
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -33,18 +32,12 @@ router.post("/", express.raw({ type: "application/json" }), async (req, res) => 
         to: "cyberkhan7@gmail.com",
         bcc: "mekhan1900@gmail.com",
         subject: "Neue Spende eingegangen",
-        html: `
-          <h3>Neue Spende erhalten</h3>
-          <p><strong>Name:</strong> ${session.metadata.name}</p>
-          <p><strong>Email:</strong> ${session.customer_email}</p>
-          <p><strong>Telefon:</strong> ${session.metadata.phone}</p>
-          <p><strong>Betrag:</strong> €${(session.amount_total / 100).toFixed(2)}</p>
+        html: createEmailTemplate(session.metadata.name,session.customer_email,(session.amount_total / 100).toFixed(2),session.metadata.phone, charge.balance_transaction.net / 100)`
         `,
       };
 
       try {
         await transporter.sendMail(mailOptions);
-        console.log("📧 Spenden-Bestätigung gesendet");
       } catch (err) {
         console.error("❌ Fehler beim E-Mail-Versand:", err);
       }
