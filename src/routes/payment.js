@@ -94,57 +94,54 @@ dotenv.config();
 // to the information after mayment sucessfull
 router.post("/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
+
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  // Listen for checkout session completed
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const { name, email, phone } = session.metadata || {};
 
-    // Send email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "infopaymentdgh@gmail.com",
-        pass: "uvrx vsyx unsd nzbv",
-      },
-    });
+    if (session.payment_status === 'paid') {
+      // Send email
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.USER_EMAIL,
+          pass: process.env.USER_PASS,
+        },
+      });
 
-    const mailOptions = {
-      from: `"GHB Spende" <infopaymentdgh@gmail.com>`,
-      to: 'cyberkhan7@gmail.com',
-      subject: "ghb Neue Spende erhalten",
-      text: `Spende von ${name}, Betrag: ${session.amount_total / 100} EUR`,
-      html: createEmailTemplate(name, email, session.amount_total / 100, phone),
-    };
-    const mailOptions1= {
-      from: `"GHB Spende" <infopaymentdgh@gmail.com>`,
-      to: 'memsur.hasanovic@hotmail.com',
-      subject: "ghb Neue Spende erhalten",
-      text: `Spende von ${name}, Betrag: ${session.amount_total / 100} EUR`,
-      html: createEmailTemplate(name, email, session.amount_total / 100, phone),
-    };
+      const mailOptions = {
+        from: `"GHB Spende" <${process.env.USER_EMAIL}>`,
+        to: 'cyberkhan7@gmail.com',
+        bcc: 'mekhan1900@gmail.com',
+        subject: "ghb Neue Spende erhalten",
+        html: `
+          <p><strong>Name:</strong> ${session.metadata.name}</p>
+          <p><strong>Email:</strong> ${session.customer_email}</p>
+          <p><strong>Phone:</strong> ${session.metadata.phone}</p>
+          <p><strong>Betrag:</strong> €${(session.amount_total / 100).toFixed(2)}</p>
+        `
+      };
 
-
-    try {
-      await transporter.sendMail(mailOptions);
-      await transporter.sendMail(mailOptions1);
-      console.log("✅ Email sent after payment.");
-    } catch (error) {
-      console.error("❌ Email error:", error);
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log("✅ Donation email sent successfully.");
+      } catch (error) {
+        console.error("❌ Failed to send donation email:", error);
+      }
     }
   }
 
-  res.status(200).json({ received: true });
+  res.status(200).send("Webhook received");
 });
+
 
 // routes/payoutRoute.js
 router.get("/payout-details", async (req, res) => {
