@@ -39,7 +39,7 @@ router.post("/", express.raw({ type: "application/json" }), async (req, res) => 
           <!-- Header -->
           <tr>
             <td style="background: #007BFF; color: #ffffff; text-align: center; padding: 20px;">
-              <h2 style="margin: 0;"> €${(session.amount_total / 100).toFixed(2)} Nettobetrag wird ausgezahlt: € ${charge.balance_transaction.net ?(charge.balance_transaction.net / 100).toFixed(2):""}“</h2>
+              <h2 style="margin: 0;"> €${(session.amount_total / 100).toFixed(2)}“</h2>
             </td>
           </tr>
   
