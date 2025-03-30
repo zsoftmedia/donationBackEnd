@@ -90,59 +90,6 @@ dotenv.config();
   }
 });
 
-
-// to the information after mayment sucessfull
-router.post("/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  // Listen for checkout session completed
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-
-    if (session.payment_status === 'paid') {
-      // Send email
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.USER_EMAIL,
-          pass: process.env.USER_PASS,
-        },
-      });
-
-      const mailOptions = {
-        from: `"GHB Spende" <${process.env.USER_EMAIL}>`,
-        to: 'cyberkhan7@gmail.com',
-        bcc: 'mekhan1900@gmail.com',
-        subject: "ghb Neue Spende erhalten",
-        html: `
-          <p><strong>Name:</strong> ${session.metadata.name}</p>
-          <p><strong>Email:</strong> ${session.customer_email}</p>
-          <p><strong>Phone:</strong> ${session.metadata.phone}</p>
-          <p><strong>Betrag:</strong> €${(session.amount_total / 100).toFixed(2)}</p>
-        `
-      };
-
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log("✅ Donation email sent successfully.");
-      } catch (error) {
-        console.error("❌ Failed to send donation email:", error);
-      }
-    }
-  }
-
-  res.status(200).send("Webhook received");
-});
-
-
 // routes/payoutRoute.js
 router.get("/payout-details", async (req, res) => {
   try {
