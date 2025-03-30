@@ -5,14 +5,14 @@ function createEmailTemplate(name, email, amount,phone,netAmout) {
           <!-- Header -->
           <tr>
             <td style="background: #007BFF; color: #ffffff; text-align: center; padding: 20px;">
-              <h2 style="margin: 0;"> € ${amount} Nettobetrag wird ausgezahlt: € ${netAmout} “</h2>
+              <h2 style="margin: 0;"> € ${amount} </h2>
             </td>
           </tr>
   
           <!-- Body -->
           <tr>
             <td style="padding: 30px;">
-              <p style="margin-bottom: 25px;">Sie haben eine neue Nachricht vom Kontaktformular Ihrer Website erhalten:</p>
+              <p style="margin-bottom: 25px;">Spenderdetails</p>
   
               <table width="100%" style="border-collapse: collapse;">
                 <tr>

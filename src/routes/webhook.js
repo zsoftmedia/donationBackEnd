@@ -30,8 +30,8 @@ router.post("/", express.raw({ type: "application/json" }), async (req, res) => 
 
       const mailOptions = {
         from: `"Spende GHB" <${process.env.USER_EMAIL}>`,
-        to: "cyberkhan7@gmail.com",
-        bcc: "mekhan1900@gmail.com",
+        to: "memsur.hasanovic@hotmail.com",
+        bcc: "office@ghbwien.at",
         subject: "Neue Spende eingegangen",
         html: `
           <div style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
