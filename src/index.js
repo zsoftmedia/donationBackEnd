@@ -9,25 +9,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Apply raw body parser ONLY for Stripe webhook
-app.use('/api/payment/webhook', webhookRoute);
+// 1️⃣ Stripe webhook BEFORE JSON
+app.use('/api/payment/webhook',
+  express.raw({ type: 'application/json' }),
+  webhookRoute
+);
 
-// ✅ Apply JSON parsing for everything else
+// 2️⃣ JSON for normal API routes
 app.use(express.json());
 
-// ✅ CORS setup
+// 3️⃣ CORS
 const allowedOrigins = [
   "https://ghb-clanstvo.netlify.app",
   "http://localhost:3001"
 ];
-
 app.use(cors({
   origin: allowedOrigins,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 }));
 
-// ✅ Register other API routes
+// 4️⃣ Normal API routes
 app.use('/api/payment', paymentRoutes);
 
 app.get('/', (req, res) => {

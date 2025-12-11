@@ -56,7 +56,16 @@ dotenv.config();
 // ✅ POST: Create Stripe session and send email
   router.post("/create-checkout-session", async (req, res) => {
   try {
-    const { name, email, address, amount, phone } = req.body;
+    const { 
+        name, 
+        email, 
+        profession,
+        address, 
+        addressHomeTown, 
+        amount, 
+        phone 
+      } = req.body;
+
 
     if (!name || !email || !amount || !phone) {
       console.error("Missing required fields:", req.body);
@@ -79,7 +88,16 @@ dotenv.config();
           quantity: 1,
         },
       ],
-      metadata: { name, email, phone, address },
+      metadata: { 
+            name, 
+            email, 
+            phone, 
+            address,
+            profession,
+            addressHomeTown,
+            amount
+          },
+
       success_url: `${process.env.FRONTEND_URL}success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}cancel`,
     });
@@ -129,5 +147,32 @@ router.get("/payout-details", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// routes/validateSession.js
+router.post("/validate-session", async (req, res) => {
+  const { token } = req.body; // the session token sent from the frontend
+
+  try {
+    const response = await fetch("https://9eda0e3a-e8be-4406-ab5f-38467ac35e28.hanko.io/sessions/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({ session_token: token }),
+    });
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Session validation failed" });
+    }
+    const sessionData = await response.json();
+    return res.json(sessionData);
+  } catch (err) {
+    console.error("Error validating session:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+module.exports = router;
+
 
 module.exports = router;
